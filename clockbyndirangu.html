@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clock with Roman Numerals & Ticking Sound</title>
+  <style>
+    :root {
+      --clock-size: 360px;
+      --center-size: 12px;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #282c34;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .clock {
+      width: var(--clock-size);
+      height: var(--clock-size);
+      position: relative;
+      border: 8px solid #fff;
+      border-radius: 50%;
+      background: radial-gradient(circle, #333 20%, #000);
+      margin-bottom: 20px;
+    }
+
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      background-color: #fff;
+      transition: transform 0.1s ease-in-out;
+      filter: drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.8)); /* Glowing effect */
+    }
+
+    .hour {
+      width: 6px;
+      height: 30%;
+      background-color: #ff6347;
+    }
+
+    .minute {
+      width: 4px;
+      height: 40%;
+    }
+
+    .second {
+      width: 2px;
+      height: 45%;
+      background-color: #ff4500;
+    }
+
+    .center {
+      width: var(--center-size);
+      height: var(--center-size);
+      background-color: violet;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+    }
+
+    /* Roman Numerals */
+    .number {
+      position: absolute;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: green;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Hour Spikes */
+    .spike {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background-color: cyan;
+      left: 50%;
+      top: 50%;
+      transform-origin: center;
+    }
+
+    /* Minute Markers */
+    .minute-marker {
+      position: absolute;
+      width: 2px;
+      height: 6px;
+      background-color: #aaa;
+      left: 50%;
+      top: 50%;
+      transform-origin: center;
+    }
+
+    /* Digital Clock */
+    .digital-clock {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    /* Date Display */
+    .date-display {
+      font-size: 1.2rem;
+    }
+
+    /* Weekday */
+    .weekday {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="digital-clock" id="digital-clock">12:00:00 AM</div>
+  <div class="clock" id="clock">
+    <div class="hand hour"></div>
+    <div class="hand minute"></div>
+    <div class="hand second"></div>
+    <div class="center"></div>
+  </div>
+  <div class="weekday" id="weekday">Sunday</div>
+  <div class="date-display" id="date-display">January 14, 2025</div>
+
+  <!-- Ticking Sound -->
+  <audio id="tick-sound">
+    <source src="tick.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const hourHand = document.querySelector('.hour');
+    const minuteHand = document.querySelector('.minute');
+    const secondHand = document.querySelector('.second');
+    const digitalClock = document.getElementById("digital-clock");
+    const dateDisplay = document.getElementById("date-display");
+    const weekdayDisplay = document.getElementById("weekday");
+    const clock = document.getElementById("clock");
+    const tickSound = document.getElementById("tick-sound");
+
+    function setClock() {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const minutes = now.getMinutes();
+      let hours = now.getHours();
+      const ampm = hours >= 12 ? "PM" : "AM";
+
+      // Convert 24-hour format to 12-hour format
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+
+      const secondsDegrees = (seconds / 60) * 360;
+      const minutesDegrees = (minutes / 60) * 360 + (seconds / 60) * 6;
+      const hoursDegrees = (hours % 12) * 30 + (minutes / 60) * 30;
+
+      secondHand.style.transform = `rotate(${secondsDegrees}deg)`;
+      minuteHand.style.transform = `rotate(${minutesDegrees}deg)`;
+      hourHand.style.transform = `rotate(${hoursDegrees}deg)`;
+
+      // Play ticking sound
+      tickSound.currentTime = 0;
+      tickSound.play();
+
+      // Update Digital Time
+      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
+      digitalClock.innerText = formattedTime;
+
+      // Update Date
+      const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const dayOfWeek = daysOfWeek[now.getDay()];
+      const day = now.getDate();
+      const month = months[now.getMonth()];
+      const year = now.getFullYear();
+
+      weekdayDisplay.innerText = dayOfWeek;
+      dateDisplay.innerText = `${month} ${day}, ${year}`;
+    }
+
+    function addMarkers() {
+      const romanNumerals = ["12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
+      const clockRadius = 180;
+
+      for (let i = 0; i < 12; i++) {
+        const angle = (i * 30) * (Math.PI / 180);
+        const x = clockRadius + Math.sin(angle) * (clockRadius - 30);
+        const y = clockRadius - Math.cos(angle) * (clockRadius - 30);
+
+        const num = document.createElement("div");
+        num.classList.add("number");
+        num.innerText = romanNumerals[i];
+        num.style.left = `${x}px`;
+        num.style.top = `${y}px`;
+        clock.appendChild(num);
+
+        const spike = document.createElement("div");
+        spike.classList.add("spike");
+        spike.style.transform = `rotate(${i * 30}deg) translate(0px, -160px)`;
+        clock.appendChild(spike);
+      }
+
+      for (let i = 0; i < 60; i++) {
+        const angle = (i * 6) * (Math.PI / 180);
+        const minuteMarker = document.createElement("div");
+        minuteMarker.classList.add("minute-marker");
+        minuteMarker.style.transform = `rotate(${i * 6}deg) translate(0px, -170px)`;
+        clock.appendChild(minuteMarker);
+      }
+    }
+
+    setInterval(setClock, 1000);
+    setClock();
+    addMarkers();
+  </script>
+</body>
+</html>
